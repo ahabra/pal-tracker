@@ -17,8 +17,8 @@ public class TimeEntryController {
         this.timeEntryRepository = timeEntryRepository;
     }
 
-    @PostMapping("/time-entries")
-    public ResponseEntity<TimeEntry> create(TimeEntry timeEntry) {
+    @PostMapping(path = "/time-entries")
+    public ResponseEntity<TimeEntry> create(@RequestBody TimeEntry timeEntry) {
         return new ResponseEntity<>(timeEntryRepository.create(timeEntry), CREATED);
     }
 
@@ -38,7 +38,7 @@ public class TimeEntryController {
 
     @PutMapping("/time-entries/{timeEntryId}")
     public ResponseEntity<TimeEntry> update(@PathVariable("timeEntryId") long timeEntryId,
-                                 TimeEntry timeEntry) {
+                                            @RequestBody TimeEntry timeEntry) {
         TimeEntry updated = timeEntryRepository.update(timeEntryId, timeEntry);
         if (updated == null) {
             return ResponseEntity.notFound().build();
