@@ -11,10 +11,10 @@ public class InMemoryTimeEntryRepository implements TimeEntryRepository {
 
     @Override
     public TimeEntry create(TimeEntry timeEntry) {
-        commonId++;
-        timeEntry.setId(commonId);
-        db.put(commonId, timeEntry);
-        return timeEntry;
+        TimeEntry copy = timeEntry.copy();
+        copy.setId(++commonId);
+        db.put(commonId, copy);
+        return copy;
     }
 
     @Override
@@ -32,10 +32,11 @@ public class InMemoryTimeEntryRepository implements TimeEntryRepository {
         if (! db.containsKey(id)) {
             return null;
         }
+        TimeEntry copy = timeEntry.copy();
 
-        timeEntry.setId(id);
-        db.put(id, timeEntry);
-        return timeEntry;
+        copy.setId(id);
+        db.put(id, copy);
+        return copy;
     }
 
     @Override

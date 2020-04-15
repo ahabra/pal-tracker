@@ -92,4 +92,9 @@ public class TimeEntry {
                 ", hours=" + hours +
                 '}';
     }
+
+    public TimeEntry copy() {
+        return new TimeEntry(id, projectId, userId, date, hours);
+    }
+
 }
