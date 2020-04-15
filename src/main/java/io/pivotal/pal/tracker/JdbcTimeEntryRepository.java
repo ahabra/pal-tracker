@@ -1,25 +1,26 @@
 package io.pivotal.pal.tracker;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
 import javax.sql.DataSource;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 public class JdbcTimeEntryRepository implements TimeEntryRepository {
     private JdbcTemplate jdbcTemplate;
 
     private interface Sql {
-        String insert = "insert into time_entries (id, project_id, user_id, date, hours) " +
-                "values (?, ?, ?, ?, ?)";
+        String insert = "insert into time_entries (project_id, user_id, date, hours) " +
+                "values (?, ?, ?, ?)";
         String findById = "select id, project_id, user_id, date, hours from time_entries " +
                 "where id = ?";
         String selectAll = "SELECT id, project_id, user_id, date, hours FROM time_entries";
-        String update = "update time_entries set project_id=?, user_id=?, date=?, hours=?";
+        String update = "update time_entries set project_id=?, user_id=?, date=?, hours=? " +
+                "where id = ?";
         String delete = "delete from time_entries where id=?";
     }
 
@@ -45,9 +46,18 @@ public class JdbcTimeEntryRepository implements TimeEntryRepository {
     @Override
     public TimeEntry create(TimeEntry timeEntry) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        PreparedStatementCreator psc = con -> {
+            PreparedStatement statement = con.prepareStatement(Sql.insert, Statement.RETURN_GENERATED_KEYS);
+            statement.setLong(1, timeEntry.getProjectId());
+            statement.setLong(2, timeEntry.getUserId());
+            statement.setDate(3, Date.valueOf( timeEntry.getDate()));
+            statement.setInt(4, timeEntry.getHours());
+            return statement;
+        };
+        jdbcTemplate.update(psc, keyHolder);
+
         long id = keyHolder.getKey().longValue();
-        jdbcTemplate.update(Sql.insert, id, timeEntry.getProjectId(), timeEntry.getUserId(),
-                timeEntry.getDate(), timeEntry.getHours());
         return find(id);
     }
 
